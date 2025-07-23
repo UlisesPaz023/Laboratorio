@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "muestras" ALTER COLUMN "fecha_ingreso" SET DEFAULT CURRENT_TIMESTAMP;

@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model caja {
+  id                BigInt      @id @default(autoincrement())
+  fecha             DateTime    @default(now()) @db.Timestamp(6)
+  tipo_transaccion  String      @db.VarChar(20) // 'ingreso' o 'egreso'
+  categoria         String      @db.VarChar(30) // 'analisis','consulta','insumo','servicios','otro'
+  monto             Decimal     @db.Decimal(10, 2)
+  fecha_transaccion DateTime    @default(now()) @db.Timestamp(6)
+  descripcion       String?     @db.VarChar(255)
+  id_muestra        BigInt?     // Relación opcional con muestra
+
+  muestra           muestras?   @relation(fields: [id_muestra], references: [id], onDelete: SetNull)
+}
+
+model materiales {
+  id               BigInt             @id @default(autoincrement())
+  nombre           String             @db.VarChar(30)
+  descripcion      String?
+  muestra_material muestra_material[]
+}
+
+model medicos {
+  usuario_id   BigInt        @id
+  matricula    String     @db.VarChar(30)
+  especialidad String?    @db.VarChar(30)
+  usuarios     usuarios   @relation(fields: [usuario_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  muestras     muestras[]
+}
+
+model muestra_material {
+  id_muestra  BigInt
+  id_material BigInt
+  materiales  materiales @relation(fields: [id_material], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  muestras    muestras   @relation(fields: [id_muestra], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([id_muestra, id_material])
+}
+
+model muestras {
+  id               BigInt             @id @default(autoincrement())
+  fecha_ingreso    DateTime           @default(now()) @db.Date
+  fecha_entrega    DateTime           @db.Date
+  nro_autorizacion String             @db.VarChar(50)
+  monto            Decimal            @db.Decimal(10, 2)
+  tipo_cobertura   Boolean            @default(true)
+  tipo_patologia   String             @db.VarChar(30) // '150105','150106','150111'
+  id_secretario    BigInt
+  id_paciente      BigInt
+  id_medico        BigInt
+  muestra_material muestra_material[]
+  medicos          medicos            @relation(fields: [id_medico], references: [usuario_id], onDelete: NoAction, onUpdate: NoAction)
+  pacientes        pacientes          @relation(fields: [id_paciente], references: [usuario_id], onDelete: NoAction, onUpdate: NoAction)
+  secretarios      secretarios        @relation(fields: [id_secretario], references: [usuario_id], onDelete: NoAction, onUpdate: NoAction)
+  caja             caja[]
+  id_informe       BigInt             @unique
+  informe          informes           @relation(fields: [id_informe], references: [id])
+}
+
+model informes {
+  id             BigInt    @id @default(autoincrement())
+  tipo_informe   String    @db.VarChar(50)
+  descripcion    String    @db.VarChar(255)
+  fecha_creacion DateTime? @default(now()) @db.Timestamp(6)
+  muestra        muestras?
+}
+
+model pacientes {
+  usuario_id       BigInt        @id
+  fecha_nacimiento DateTime?  @db.Date
+  telefono         String     @db.VarChar(50)
+  muestras         muestras[]
+  usuarios         usuarios   @relation(fields: [usuario_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model secretarios {
+  usuario_id BigInt        @id
+  muestras   muestras[]
+  usuarios   usuarios   @relation(fields: [usuario_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model usuarios {
+  id           BigInt       @id @default(autoincrement())
+  nombre       String       @db.VarChar(30)
+  apellido     String       @db.VarChar(30)
+  documento    String       @unique @db.VarChar(30)
+  correo       String       @unique @db.VarChar(30)
+  contrasenia  String       @db.VarChar(100)
+  tipo_usuario String       @db.VarChar(30)
+  medicos      medicos?
+  pacientes    pacientes?
+  secretarios  secretarios?
+}
