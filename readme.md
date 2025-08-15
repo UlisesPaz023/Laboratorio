@@ -53,7 +53,7 @@ Actualmente, CEDHIC utiliza un sistema comercial que presenta limitaciones, lo q
 ## ¿Cómo ejecutar el proyecto de manera local?
 
 1. Clonar el repositorio:
-    git clone https://github.com/MaiaAgostina1006/Proyecto
+    git clone https://github.com/UlisesPaz023/Laboratorio.git
 
 2. Abrir dos terminales y posicionarse en las carpetas client y server respectivamente:
     "cd Proyecto/client" y "cd Proyecto/server"
